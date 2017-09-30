@@ -1,11 +1,11 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=lua-periphery
-PKG_VERSION:=2016-08-10
+PKG_VERSION:=1.1.1
 PKG_RELEASE=$(PKG_SOURCE_VERSION)
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
-PKG_MAINTAINER:=Xue Liu <xue.liu@dks-koeln.de>
+PKG_MAINTAINER:=Sebastian Muszytowski
 
 include $(INCLUDE_DIR)/package.mk
 

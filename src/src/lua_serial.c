@@ -13,7 +13,7 @@
 #include <stdint.h>
 #include <errno.h>
 
-#include "serial.h"
+#include <c-periphery/src/serial.h>
 #include "lua_periphery.h"
 #include "lua_compat.h"
 
@@ -586,7 +586,7 @@ LUALIB_API int luaopen_periphery_serial(lua_State *L) {
     /* Set it as the metatable for the periphery.Serial metatable */
     lua_setmetatable(L, -2);
 
-    lua_pushstring(L, LUA_PERIPHERY_SERIAL_VERSION);
+    lua_pushstring(L, LUA_PERIPHERY_VERSION);
     lua_setfield(L, -2, "version");
 
     return 1;

@@ -60,9 +60,8 @@ int gpio_open(gpio_t *gpio, unsigned int pin, gpio_direction_t direction) {
     char buf[16];
     int fd;
 
-    /* Argument validation */
-    if (direction != GPIO_DIR_IN && direction != GPIO_DIR_OUT && direction != GPIO_DIR_OUT_LOW && direction != GPIO_DIR_OUT_HIGH)
-        return _gpio_error(gpio, GPIO_ERROR_ARG, 0, "Invalid GPIO direction (can be in, out, low, high)");
+    if (direction != GPIO_DIR_IN && direction != GPIO_DIR_OUT && direction != GPIO_DIR_OUT_LOW && direction != GPIO_DIR_OUT_HIGH && direction != GPIO_DIR_PRESERVE)
+        return _gpio_error(gpio, GPIO_ERROR_ARG, 0, "Invalid GPIO direction (can be in, out, low, high, preserve)");
 
     /* Check if GPIO directory exists */
     snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%d", pin);
@@ -84,17 +83,20 @@ int gpio_open(gpio_t *gpio, unsigned int pin, gpio_direction_t direction) {
             return _gpio_error(gpio, GPIO_ERROR_EXPORT, errno, "Exporting GPIO: stat 'gpio%d/'", pin);
     }
 
-    /* Write direction */
-    snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%d/direction", pin);
-    if ((fd = open(gpio_path, O_WRONLY)) < 0)
-        return _gpio_error(gpio, GPIO_ERROR_SET_DIRECTION, errno, "Configuring GPIO: opening 'direction'");
-    if (write(fd, gpio_direction_to_string[direction], strlen(gpio_direction_to_string[direction])+1) < 0) {
-        int errsv = errno;
-        close(fd);
-        return _gpio_error(gpio, GPIO_ERROR_SET_DIRECTION, errsv, "Configuring GPIO: writing 'direction'");
+    /* If not preserving existing direction */
+    if (direction != GPIO_DIR_PRESERVE) {
+        /* Write direction */
+        snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%d/direction", pin);
+        if ((fd = open(gpio_path, O_WRONLY)) < 0)
+            return _gpio_error(gpio, GPIO_ERROR_SET_DIRECTION, errno, "Configuring GPIO: opening 'direction'");
+        if (write(fd, gpio_direction_to_string[direction], strlen(gpio_direction_to_string[direction])+1) < 0) {
+            int errsv = errno;
+            close(fd);
+            return _gpio_error(gpio, GPIO_ERROR_SET_DIRECTION, errsv, "Configuring GPIO: writing 'direction'");
+        }
+        if (close(fd) < 0)
+            return _gpio_error(gpio, GPIO_ERROR_SET_DIRECTION, errno, "Configuring GPIO: closing 'direction'");
     }
-    if (close(fd) < 0)
-        return _gpio_error(gpio, GPIO_ERROR_SET_DIRECTION, errno, "Configuring GPIO: closing 'direction'");
 
     memset(gpio, 0, sizeof(struct gpio_handle));
     gpio->pin = pin;
@@ -157,7 +159,12 @@ int gpio_write(gpio_t *gpio, bool value) {
 
 int gpio_poll(gpio_t *gpio, int timeout_ms) {
     struct pollfd fds[1];
+    char buf[1];
     int ret;
+
+    /* Dummy read before poll */
+    if (read(gpio->fd, buf, 1) < 0)
+        return _gpio_error(gpio, GPIO_ERROR_IO, errno, "Reading GPIO 'value'");
 
     /* Seek to end */
     if (lseek(gpio->fd, 0, SEEK_END) < 0)
@@ -343,4 +350,3 @@ unsigned int gpio_pin(gpio_t *gpio) {
 int gpio_fd(gpio_t *gpio) {
     return gpio->fd;
 }
-

@@ -13,7 +13,7 @@
 #include <stdint.h>
 #include <errno.h>
 
-#include "i2c.h"
+#include <c-periphery/src/i2c.h>
 #include "lua_periphery.h"
 #include "lua_compat.h"
 
@@ -254,6 +254,9 @@ static int lua_i2c_transfer(lua_State *L) {
                 lua_pushunsigned(L, i2c_msgs[i].buf[j]);
                 lua_settable(L, -3);
             }
+
+            /* Pop message table */
+            lua_pop(L, 1);
         }
     }
 
@@ -358,7 +361,7 @@ LUALIB_API int luaopen_periphery_i2c(lua_State *L) {
     /* Set it as the metatable for the periphery.I2C metatable */
     lua_setmetatable(L, -2);
 
-    lua_pushstring(L, LUA_PERIPHERY_I2C_VERSION);
+    lua_pushstring(L, LUA_PERIPHERY_VERSION);
     lua_setfield(L, -2, "version");
 
     /* Copy useful message flags from <linux/i2c.h> */

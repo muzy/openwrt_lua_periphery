@@ -13,7 +13,7 @@
 #include <stdint.h>
 #include <errno.h>
 
-#include "mmio.h"
+#include <c-periphery/src/mmio.h>
 #include "lua_periphery.h"
 #include "lua_compat.h"
 
@@ -453,7 +453,7 @@ LUALIB_API int luaopen_periphery_mmio(lua_State *L) {
     /* Set it as the metatable for the periphery.MMIO metatable */
     lua_setmetatable(L, -2);
 
-    lua_pushstring(L, LUA_PERIPHERY_MMIO_VERSION);
+    lua_pushstring(L, LUA_PERIPHERY_VERSION);
     lua_setfield(L, -2, "version");
 
     return 1;

@@ -1,18 +1,48 @@
-C_PERIPHERY_CFLAGS 		= $(CFLAGS) -std=gnu99 -pedantic -fstrict-aliasing -Wall -Wextra -Wno-unused-parameter -Wno-pointer-to-int-cast -Iinclude
+LIB = periphery.so
+SRCS = src/lua_periphery.c src/lua_mmio.c src/lua_gpio.c src/lua_spi.c src/lua_i2c.c src/lua_serial.c
 
-C_PERIPHERY_LIB			= libcperiphery.so
-C_PERIPHERY_LIB_LDFLAGS = $(LDFLAGS) -shared
-C_PERIPHERY_LIB_OBJ		= i2c.o serial.o spi.o mmio.o gpio.o
+C_PERIPHERY = c-periphery
+C_PERIPHERY_LIB = $(C_PERIPHERY)/periphery.a
 
-LUA_PERIPHERY 			= periphery.so
-LUA_PERIPHERY_LDFLAGS	= $(LDFLAGS) -shared -L. -lcperiphery -llua
-LUA_PERIPHERY_OBJS		= lua_gpio.o lua_i2c.o lua_mmio.o lua_periphery.o lua_spi.o lua_serial.o
+ifndef LUA
+LUA = lua
+endif
 
-%.o: %.c
-	$(CC) $(C_PERIPHERY_CFLAGS) $(FPIC) -c -o $@ $<
-	
-compile: clean $(C_PERIPHERY_LIB_OBJ) $(LUA_PERIPHERY_OBJS)
-	$(CC) $(C_PERIPHERY_LIB_LDFLAGS) 	-o $(C_PERIPHERY_LIB) $(C_PERIPHERY_LIB_OBJ)
-	$(CC) $(LUA_PERIPHERY_LDFLAGS) 		-o $(LUA_PERIPHERY) $(LUA_PERIPHERY_OBJS)
+ifndef LUA_INCDIR
+LUA_CFLAGS = $(shell pkg-config --cflags $(LUA))
+else
+LUA_CFLAGS = -I$(LUA_INCDIR)
+endif
+
+###########################################################################
+
+MOD_CFLAGS = $(CFLAGS)
+MOD_CFLAGS += -std=c99 -pedantic -D_XOPEN_SOURCE=700
+MOD_CFLAGS += -Wall -Wextra -Wno-unused-parameter $(DEBUG) -fPIC -I. $(LUA_CFLAGS)
+
+MOD_LDFLAGS = $(LDFLAGS)
+MOD_LDFLAGS += -shared
+
+###########################################################################
+
+.PHONY: all
+all: $(LIB)
+
+.PHONY: clean
 clean:
-	rm -f *.o $(C_PERIPHERY_LIB) $(LUA_PERIPHERY) $(LUA_PERIPHERY_OBJS) $(C_PERIPHERY_LIB_OBJ)
+	cd $(C_PERIPHERY) && $(MAKE) clean
+	rm -rf $(LIB)
+
+.PHONY: install
+install:
+	mkdir -p $(LUA_LIBDIR)
+	cp $(LIB) $(LUA_LIBDIR)/$(LIB)
+
+###########################################################################
+
+$(LIB): $(C_PERIPHERY_LIB) $(SRCS)
+	$(CC) $(MOD_CFLAGS) $(MOD_LDFLAGS) $(SRCS) $(C_PERIPHERY_LIB) -o $@
+
+$(C_PERIPHERY_LIB): $(C_PERIPHERY)/Makefile
+	cd $(C_PERIPHERY); $(MAKE)
+

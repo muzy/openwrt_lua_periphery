@@ -12,8 +12,8 @@ local GPIO = periphery.GPIO
 GPIO.version                <string>
 
 -- Constructor
-gpio = GPIO(pin <number>, direction <string>)
-gpio = GPIO{pin=<number>, direction=<string>}
+gpio = GPIO(pin <number>[, direction <string>])
+gpio = GPIO{pin=<number>[, direction=<string>]}
 
 -- Methods
 gpio:read() --> <boolean>
@@ -32,16 +32,17 @@ gpio.edge                   mutable <string>
 ### CONSTANTS
 
 * GPIO Direction
-    * "in": In
-    * "out": Out, initialized to low
-    * "low": Out, initialized to low
-    * "high": Out, initialized to high
+    * `"in"` - Input
+    * `"out"` - Output, initialized to low
+    * `"low"` - Output, initialized to low
+    * `"high"` - Output, initialized to high
+    * `"preserve"` - Preserve existing direction
 
 * GPIO Edge
-    * "none": No interrupt edge
-    * "rising": Rising edge (0 -> 1 transition)
-    * "falling": Falling edge (1 -> 0 transition)
-    * "both": Both edges (X -> !X transition)
+    * `"none"` - No interrupt edge
+    * `"rising"` - Rising edge (0 -> 1 transition)
+    * `"falling"` - Falling edge (1 -> 0 transition)
+    * `"both"` - Both edges (X -> !X transition)
 
 ### DESCRIPTION
 
@@ -53,16 +54,20 @@ Version of GPIO module as a string (e.g. "1.0.0").
 --------------------------------------------------------------------------------
 
 ``` lua
-GPIO(pin <number>, direction <string>) --> <GPIO object>
-GPIO{pin=<number>, direction=<string>} --> <GPIO object>
+GPIO(pin <number>[, direction <string>]) --> <GPIO object>
+GPIO{pin=<number>[, direction=<string>]} --> <GPIO object>
 ```
 
-Instantiate a GPIO object and open the sysfs GPIO corresponding to the specified pin, with the specified direction. Direction can be "in", "out", "low", or "high" (see [constants](#constants) above).
+Instantiate a GPIO object and open the sysfs GPIO corresponding to the specified pin, with the optional specified direction. Direction can be "in", "out", "low", "high", "preserve" (see [constants](#constants) above). Direction defaults to "preserve".
 
 Example:
 ``` lua
+-- Open GPIO 23 with output direction
 gpio = GPIO(23, "out")
 gpio = GPIO{pin=23, direction="out"}
+
+-- Open GPIO 46 with preserved direction
+gpio = GPIO(46)
 ```
 
 Returns a new GPIO object on success. Raises a [GPIO error](#errors) on failure.
@@ -137,7 +142,7 @@ Raises a [GPIO error](#errors) on assignment.
 ``` lua
 Property gpio.direction     mutable <string>
 ```
-Get or set the GPIO's direction. Can be "in", or "out" (see [constants](#constants) above).
+Get or set the GPIO's direction. Can be "in" or "out" (see [constants](#constants) above).
 
 Raises a [GPIO error](#errors) on assignment with invalid direction.
 
@@ -176,15 +181,15 @@ false
 
 | Error Code                    | Description                   |
 |-------------------------------|-------------------------------|
-| "GPIO_ERROR_ARG"              | Invalid arguments             |
-| "GPIO_ERROR_EXPORT"           | Exporting GPIO                |
-| "GPIO_ERROR_OPEN"             | Opening GPIO value            |
-| "GPIO_ERROR_IO"               | Reading/writing GPIO value    |
-| "GPIO_ERROR_CLOSE"            | Closing GPIO value            |
-| "GPIO_ERROR_SET_DIRECTION"    | Setting GPIO direction        |
-| "GPIO_ERROR_GET_DIRECTION"    | Getting GPIO direction        |
-| "GPIO_ERROR_SET_EDGE"         | Setting GPIO interrupt edge   |
-| "GPIO_ERROR_GET_EDGE"         | Getting GPIO interrupt edge   |
+| `"GPIO_ERROR_ARG"`            | Invalid arguments             |
+| `"GPIO_ERROR_EXPORT"`         | Exporting GPIO                |
+| `"GPIO_ERROR_OPEN"`           | Opening GPIO value            |
+| `"GPIO_ERROR_IO"`             | Reading/writing GPIO value    |
+| `"GPIO_ERROR_CLOSE"`          | Closing GPIO value            |
+| `"GPIO_ERROR_SET_DIRECTION"`  | Setting GPIO direction        |
+| `"GPIO_ERROR_GET_DIRECTION"`  | Getting GPIO direction        |
+| `"GPIO_ERROR_SET_EDGE"`       | Setting GPIO interrupt edge   |
+| `"GPIO_ERROR_GET_EDGE"`       | Getting GPIO interrupt edge   |
 
 ### EXAMPLE
 
